@@ -112,7 +112,7 @@ public class Server extends JFrame {
             while (true) {
                 try {
                     line = in.readLine();
-                    System.out.println("Received message:\n\t" + line);
+                    System.out.println("Received messageField:\n\t" + line);
                     onMessage(line);
                 } catch (IOException e) {
                     System.out.println(e);

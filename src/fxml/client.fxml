@@ -16,7 +16,7 @@
       <ListView fx:id="chatWindow" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
         <HBox alignment="CENTER_LEFT" spacing="5.0" GridPane.rowIndex="2">
             <children>
-                <TextField fx:id="message" maxWidth="1.7976931348623157E308" onAction="#onSendMessage" HBox.hgrow="ALWAYS" />
+                <TextField fx:id="messageField" maxWidth="1.7976931348623157E308" onAction="#onSendMessage" HBox.hgrow="ALWAYS" />
                 <Button mnemonicParsing="false" onAction="#onSendMessage" text="Send" />
             </children>
          <VBox.margin>

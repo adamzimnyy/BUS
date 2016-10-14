@@ -15,6 +15,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.ResourceBundle;
 
 ;
@@ -27,7 +29,7 @@ public class Client implements SocketListener, Initializable {
     ClientInfo info;
 
     @FXML
-    TextField message;
+    TextField messageField;
 
     @FXML
     Label aLabel, bLabel, pLabel, gLabel, sLabel, secretALabel;
@@ -52,10 +54,12 @@ public class Client implements SocketListener, Initializable {
 
     @FXML
     public void onSendMessage() throws IOException {
-        if (!message.getText().isEmpty()) {
-            send(Key.MESSAGE, message.getText());
+        if (!messageField.getText().isEmpty()) {
+            String message = messageField.getText();
+            message = Base64.getEncoder().encodeToString(message.getBytes(StandardCharsets.UTF_8));
+            send(Key.MESSAGE, message);
         }
-        message.setText("");
+        messageField.setText("");
     }
 
     private void send(String key, String value) {
@@ -87,7 +91,9 @@ public class Client implements SocketListener, Initializable {
         JSONObject json = new JSONObject(line);
         if (json.has(Key.MESSAGE)) {
             //TODO encrypt
-            chatWindow.getItems().addAll(json.getString(Key.MESSAGE));
+            String message = json.getString(Key.MESSAGE);
+            message = new String(Base64.getDecoder().decode(message), StandardCharsets.UTF_8);
+            chatWindow.getItems().add(message);
         }
         if (json.has(Key.A_VALUE)) {
 
@@ -164,7 +170,7 @@ public class Client implements SocketListener, Initializable {
             while (true) {
                 try {
                     line[0] = in.readLine();
-                    System.out.println("Received message:\n\t" + line[0]);
+                    System.out.println("Received messageField:\n\t" + line[0]);
                     Platform.runLater(() -> listener.onMessage(line[0]));
                 } catch (IOException e) {
                     e.printStackTrace();
