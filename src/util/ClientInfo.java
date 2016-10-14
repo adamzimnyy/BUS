@@ -6,9 +6,25 @@ import java.net.Socket;
  * Created by adamz on 10.10.2016.
  */
 public class ClientInfo {
-   private Integer p,g,A,B,a,b,s;
+   private Integer p,g,A,B,secretA,secretB,s;
 
-   private int port, id;
+    public Integer getSecretA() {
+        return secretA;
+    }
+
+    public void setSecretA(Integer secretA) {
+        this.secretA = secretA;
+    }
+
+    public Integer getSecretB() {
+        return secretB;
+    }
+
+    public void setSecretB(Integer secretB) {
+        this.secretB = secretB;
+    }
+
+    private int port, id;
     private String name;
 
     public Integer getP() {
@@ -73,5 +89,9 @@ public class ClientInfo {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isReady() {
+        return A != null && B != null && p != null & g != null;
     }
 }

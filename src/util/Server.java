@@ -72,8 +72,7 @@ public class Server extends JFrame {
 
     private synchronized void broadcast(String msg) {
         for (ClientThread ct : cList) {
-            ct.out.println(msg);
-            ct.out.flush();
+            sendMessage(msg, ct);
         }
     }
 
@@ -82,7 +81,7 @@ public class Server extends JFrame {
         ct.out.flush();
     }
 
-    class ClientThread extends Thread implements SocketListener {
+    private class ClientThread extends Thread implements SocketListener {
         PrintWriter out;
         BufferedReader in;
         ClientInfo info = new ClientInfo();
@@ -90,8 +89,11 @@ public class Server extends JFrame {
 
         ClientThread(Socket socket) {
             info.setId(++uniqueId);
+            info.setSecretB(DiffieHellman.getInitialSecret());
+            info.setP(DiffieHellman.generateP());
+            info.setG(DiffieHellman.generateG());
+            info.setB(DiffieHellman.makeB(info));
             this.socket = socket;
-            ;
             try {
                 in = new BufferedReader(new InputStreamReader(
                         socket.getInputStream()));
@@ -112,25 +114,51 @@ public class Server extends JFrame {
                     onMessage(line);
                 } catch (IOException e) {
                     System.out.println(e);
-                     break;
+                    break;
                 }
             }
         }
 
         @Override
         public void onMessage(String line) {
-              JSONObject json = new JSONObject(line);
-                if (json.has(Keys.MESSAGE)) {
-                    broadcast(line);
+            JSONObject json = new JSONObject(line);
+            if (json.has(Keys.MESSAGE)) {
+                broadcast(line);
+            }
+            if (json.has(Keys.REQUEST)) {
+                if (json.getString(Keys.REQUEST).equals(Keys.KEYS)) {
+                    JSONObject pgJson = new JSONObject();
+                    pgJson.put(Keys.P_VALUE, DiffieHellman.generateP());
+                    pgJson.put(Keys.G_VALUE, DiffieHellman.generateG());
+                    sendMessage(pgJson.toString(), this);
+                    try {
+                        sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    JSONObject bJson = new JSONObject();
+                    bJson.put(Keys.B_VALUE, info.getB());
+                    sendMessage(bJson.toString(), this);
                 }
-                if (json.has(Keys.A_VALUE)) {
-                }
-                if (json.has(Keys.B_VALUE)) {
-                }
-                if (json.has(Keys.P_VALUE)) {
-                }
-                if (json.has(Keys.ENCRYPTION)) {
-                }
+            }
+
+            if (json.has(Keys.A_VALUE)) {
+                int a = json.getInt("a");
+                info.setA(a);
+
+                if (info.isReady())
+                    info.setS(DiffieHellman.makeClientSecret(info));
+            }
+            if (json.has(Keys.B_VALUE)) {
+                System.out.println("Server should never receive B value!");
+
+            }
+            if (json.has(Keys.P_VALUE)) {
+                System.out.println("Server should never receive p or g value!");
+            }
+            if (json.has(Keys.ENCRYPTION)) {
+                info.setS(DiffieHellman.makeServerSecret(info));
+            }
         }
     }
 }

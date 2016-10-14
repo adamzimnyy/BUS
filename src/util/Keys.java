@@ -12,4 +12,5 @@ public class Keys {
     public static final String S_VALUE = "s";
     public static final String ENCRYPTION = "encryption";
     public static final String KEYS = "keys";
+    public static final String REQUEST = "request";
 }
