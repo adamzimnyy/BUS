@@ -49,7 +49,7 @@
          <Label text="Encryption" />
          <RadioButton fx:id="noneRadio" mnemonicParsing="false" text="none" />
          <RadioButton mnemonicParsing="false" text="xor" fx:id="xorRadio" />
-         <RadioButton fx:id="ceasarRadio" mnemonicParsing="false" text="ceasar" />
+         <RadioButton fx:id="caesarRadio" mnemonicParsing="false" text="ceasar" />
          <Button alignment="CENTER" mnemonicParsing="false" onAction="#applyEncryption" text="Apply" VBox.vgrow="ALWAYS" />
          <Separator prefWidth="200.0" />
       </children>

@@ -6,6 +6,6 @@ package util.constant;
 public class Value {
     public static final String KEYS = "keys";
     public static final String NONE = "none";
-    public static final String CEASAR = "cezar";
+    public static final String CAESAR = "cezar";
     public static final String XOR = "xor";
 }

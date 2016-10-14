@@ -1,4 +1,6 @@
-package util;
+package util.crypto;
+
+import util.ClientInfo;
 
 import java.util.Random;
 

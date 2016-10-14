@@ -3,6 +3,7 @@ package util;
 import org.json.JSONObject;
 import util.constant.Key;
 import util.constant.Value;
+import util.crypto.DiffieHellman;
 
 import javax.swing.*;
 import java.awt.*;
@@ -160,7 +161,7 @@ public class Server extends JFrame {
             }
             if (json.has(Key.ENCRYPTION)) {
                 String en = json.getString(Key.ENCRYPTION);
-                if(en.equals(Value.CEASAR) || en.equals(Value.NONE) || en.equals(Value.XOR))
+                if(en.equals(Value.CAESAR) || en.equals(Value.NONE) || en.equals(Value.XOR))
                 info.setEncryption(en);
             }
         }

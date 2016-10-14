@@ -8,6 +8,8 @@ import javafx.scene.control.*;
 import org.json.JSONObject;
 import util.constant.Key;
 import util.constant.Value;
+import util.crypto.Caesar;
+import util.crypto.DiffieHellman;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,8 +20,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.ResourceBundle;
-
-;
 
 public class Client implements SocketListener, Initializable {
     Socket socket;
@@ -38,16 +38,19 @@ public class Client implements SocketListener, Initializable {
     ListView<String> chatWindow;
 
     @FXML
-    RadioButton noneRadio, xorRadio, ceasarRadio;
+    RadioButton noneRadio, xorRadio, caesarRadio;
     ToggleGroup encryptionGroup;
 
     @FXML
     public void applyEncryption(ActionEvent e) {
         if (xorRadio.isSelected()) {
+            info.encryption = Value.XOR;
             send(Key.ENCRYPTION, Value.XOR);
-        } else if (ceasarRadio.isSelected()) {
-            send(Key.ENCRYPTION, Value.CEASAR);
+        } else if (caesarRadio.isSelected()) {
+            info.encryption = Value.CAESAR;
+            send(Key.ENCRYPTION, Value.CAESAR);
         } else {
+            info.encryption = Value.NONE;
             send(Key.ENCRYPTION, Value.NONE);
         }
     }
@@ -56,10 +59,22 @@ public class Client implements SocketListener, Initializable {
     public void onSendMessage() throws IOException {
         if (!messageField.getText().isEmpty()) {
             String message = messageField.getText();
-            message = Base64.getEncoder().encodeToString(message.getBytes(StandardCharsets.UTF_8));
-            send(Key.MESSAGE, message);
+            String encrypted = encrypt(message);
+            String encoded = Base64.getEncoder().encodeToString(encrypted.getBytes(StandardCharsets.UTF_8));
+            send(Key.MESSAGE, encoded);
         }
         messageField.setText("");
+    }
+
+    public String encrypt(String message) {
+        if(info.encryption == null) return message;
+        if (info.encryption.equals(Value.CAESAR)) {
+            return Caesar.encrypt(message, info.getS());
+        }
+        if (info.encryption.equals(Value.XOR)) {
+
+        }
+        return message;
     }
 
     private void send(String key, String value) {
@@ -149,7 +164,7 @@ public class Client implements SocketListener, Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         encryptionGroup = new ToggleGroup();
-        ceasarRadio.setToggleGroup(encryptionGroup);
+        caesarRadio.setToggleGroup(encryptionGroup);
         noneRadio.setToggleGroup(encryptionGroup);
         xorRadio.setToggleGroup(encryptionGroup);
     }
