@@ -7,7 +7,7 @@ import java.net.Socket;
  */
 public class ClientInfo {
    private Integer p,g,A,B,secretA,secretB,s;
-    String encryption;
+   private String encryption;
 
     public String getEncryption() {
         return encryption;

@@ -3,6 +3,7 @@ package util;
 import org.json.JSONObject;
 import util.constant.Key;
 import util.constant.Value;
+import util.crypto.Caesar;
 import util.crypto.DiffieHellman;
 
 import javax.swing.*;
@@ -14,7 +15,9 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 
 @SuppressWarnings("InfiniteLoopStatement")
 public class Server extends JFrame {
@@ -74,13 +77,24 @@ public class Server extends JFrame {
 
 
     private synchronized void broadcast(String msg) {
+        System.out.println("Broadcasting: \n\t"+msg);
         for (ClientThread ct : cList) {
-            sendMessage(msg, ct);
+            String message = ct.encrypt(msg);
+            System.out.println("\tencrypted: "+message);
+
+            String encoded = Base64.getEncoder().encodeToString(message.getBytes(StandardCharsets.UTF_8));
+            System.out.println("\tencoded: "+encoded);
+
+            JSONObject json = new JSONObject();
+            json.put(Key.MESSAGE,encoded);
+            System.out.println("\tjson: "+json.toString());
+
+            sendJson(json.toString(), ct);
         }
     }
 
-    private synchronized void sendMessage(String msg, ClientThread ct) {
-        ct.out.println(msg);
+    private synchronized void sendJson(String json, ClientThread ct) {
+        ct.out.println(json);
         ct.out.flush();
     }
 
@@ -113,7 +127,7 @@ public class Server extends JFrame {
             while (true) {
                 try {
                     line = in.readLine();
-                    System.out.println("Received messageField:\n\t" + line);
+                    System.out.println("Received message:\n\t" + line);
                     onMessage(line);
                 } catch (IOException e) {
                     System.out.println(e);
@@ -122,18 +136,42 @@ public class Server extends JFrame {
             }
         }
 
+        private String decrypt(String s) {
+            if (info.getEncryption() != null && info.getEncryption().equals(Value.CAESAR)) {
+                System.out.println("Decrypted: "+Caesar.decrypt(s, info.getS()));
+                return Caesar.decrypt(s, info.getS());
+            } else if (info.getEncryption() != null && info.getEncryption().equals(Value.XOR)) {
+                //TODO Xor cipher
+            }
+            return s;
+        }
+
+        public String encrypt(String message) {
+            if (info.getEncryption() == null) return message;
+            if (info.getEncryption().equals(Value.CAESAR)) {
+                return Caesar.encrypt(message, info.getS());
+            }
+            if (info.getEncryption().equals(Value.XOR)) {
+
+            }
+            return message;
+        }
+
         @Override
         public void onMessage(String line) {
             JSONObject json = new JSONObject(line);
             if (json.has(Key.MESSAGE)) {
-                broadcast(line);
+                String encoded = json.getString(Key.MESSAGE);
+                String encrypted = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
+                String message = decrypt(encrypted);
+                broadcast(message);
             }
             if (json.has(Key.REQUEST)) {
                 if (json.getString(Key.REQUEST).equals(Value.KEYS)) {
                     JSONObject pgJson = new JSONObject();
                     pgJson.put(Key.P_VALUE, DiffieHellman.generateP());
                     pgJson.put(Key.G_VALUE, DiffieHellman.generateG());
-                    sendMessage(pgJson.toString(), this);
+                    sendJson(pgJson.toString(), this);
                     try {
                         sleep(500);
                     } catch (InterruptedException e) {
@@ -141,7 +179,7 @@ public class Server extends JFrame {
                     }
                     JSONObject bJson = new JSONObject();
                     bJson.put(Key.B_VALUE, info.getB());
-                    sendMessage(bJson.toString(), this);
+                    sendJson(bJson.toString(), this);
                 }
             }
 
@@ -161,8 +199,8 @@ public class Server extends JFrame {
             }
             if (json.has(Key.ENCRYPTION)) {
                 String en = json.getString(Key.ENCRYPTION);
-                if(en.equals(Value.CAESAR) || en.equals(Value.NONE) || en.equals(Value.XOR))
-                info.setEncryption(en);
+                if (en.equals(Value.CAESAR) || en.equals(Value.NONE) || en.equals(Value.XOR))
+                    info.setEncryption(en);
             }
         }
     }

@@ -22,7 +22,7 @@ import java.util.Base64;
 import java.util.ResourceBundle;
 
 public class Client implements SocketListener, Initializable {
-    Socket socket;
+    private Socket socket;
     BufferedReader in;
     PrintWriter out;
 
@@ -44,13 +44,13 @@ public class Client implements SocketListener, Initializable {
     @FXML
     public void applyEncryption(ActionEvent e) {
         if (xorRadio.isSelected()) {
-            info.encryption = Value.XOR;
+            info.setEncryption(Value.XOR);
             send(Key.ENCRYPTION, Value.XOR);
         } else if (caesarRadio.isSelected()) {
-            info.encryption = Value.CAESAR;
+            info.setEncryption(Value.CAESAR);
             send(Key.ENCRYPTION, Value.CAESAR);
         } else {
-            info.encryption = Value.NONE;
+            info.setEncryption(Value.NONE);
             send(Key.ENCRYPTION, Value.NONE);
         }
     }
@@ -67,11 +67,11 @@ public class Client implements SocketListener, Initializable {
     }
 
     public String encrypt(String message) {
-        if(info.encryption == null) return message;
-        if (info.encryption.equals(Value.CAESAR)) {
+        if (info.getEncryption() == null) return message;
+        if (info.getEncryption().equals(Value.CAESAR)) {
             return Caesar.encrypt(message, info.getS());
         }
-        if (info.encryption.equals(Value.XOR)) {
+        if (info.getEncryption().equals(Value.XOR)) {
 
         }
         return message;
@@ -105,10 +105,10 @@ public class Client implements SocketListener, Initializable {
     public void onMessage(String line) {
         JSONObject json = new JSONObject(line);
         if (json.has(Key.MESSAGE)) {
-            //TODO encrypt
+
             String message = json.getString(Key.MESSAGE);
             message = new String(Base64.getDecoder().decode(message), StandardCharsets.UTF_8);
-            chatWindow.getItems().add(message);
+            chatWindow.getItems().add(decrypt(message));
         }
         if (json.has(Key.A_VALUE)) {
 
@@ -144,6 +144,17 @@ public class Client implements SocketListener, Initializable {
                 updateInfo();
             }
         }
+    }
+
+    public String decrypt(String message) {
+        if (info.getEncryption() == null) return message;
+        if (info.getEncryption().equals(Value.CAESAR)) {
+            return Caesar.decrypt(message, info.getS());
+        }
+        if (info.getEncryption().equals(Value.XOR)) {
+
+        }
+        return message;
     }
 
     private void updateInfo() {
@@ -185,7 +196,7 @@ public class Client implements SocketListener, Initializable {
             while (true) {
                 try {
                     line[0] = in.readLine();
-                    System.out.println("Received messageField:\n\t" + line[0]);
+                    System.out.println("Received message:\n\t" + line[0]);
                     Platform.runLater(() -> listener.onMessage(line[0]));
                 } catch (IOException e) {
                     e.printStackTrace();
