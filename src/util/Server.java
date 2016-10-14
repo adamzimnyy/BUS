@@ -1,6 +1,8 @@
 package util;
 
 import org.json.JSONObject;
+import util.constant.Key;
+import util.constant.Value;
 
 import javax.swing.*;
 import java.awt.*;
@@ -122,14 +124,14 @@ public class Server extends JFrame {
         @Override
         public void onMessage(String line) {
             JSONObject json = new JSONObject(line);
-            if (json.has(Keys.MESSAGE)) {
+            if (json.has(Key.MESSAGE)) {
                 broadcast(line);
             }
-            if (json.has(Keys.REQUEST)) {
-                if (json.getString(Keys.REQUEST).equals(Keys.KEYS)) {
+            if (json.has(Key.REQUEST)) {
+                if (json.getString(Key.REQUEST).equals(Value.KEYS)) {
                     JSONObject pgJson = new JSONObject();
-                    pgJson.put(Keys.P_VALUE, DiffieHellman.generateP());
-                    pgJson.put(Keys.G_VALUE, DiffieHellman.generateG());
+                    pgJson.put(Key.P_VALUE, DiffieHellman.generateP());
+                    pgJson.put(Key.G_VALUE, DiffieHellman.generateG());
                     sendMessage(pgJson.toString(), this);
                     try {
                         sleep(500);
@@ -137,27 +139,29 @@ public class Server extends JFrame {
                         e.printStackTrace();
                     }
                     JSONObject bJson = new JSONObject();
-                    bJson.put(Keys.B_VALUE, info.getB());
+                    bJson.put(Key.B_VALUE, info.getB());
                     sendMessage(bJson.toString(), this);
                 }
             }
 
-            if (json.has(Keys.A_VALUE)) {
+            if (json.has(Key.A_VALUE)) {
                 int a = json.getInt("a");
                 info.setA(a);
 
                 if (info.isReady())
-                    info.setS(DiffieHellman.makeClientSecret(info));
+                    info.setS(DiffieHellman.makeServerSecret(info));
             }
-            if (json.has(Keys.B_VALUE)) {
+            if (json.has(Key.B_VALUE)) {
                 System.out.println("Server should never receive B value!");
 
             }
-            if (json.has(Keys.P_VALUE)) {
+            if (json.has(Key.P_VALUE)) {
                 System.out.println("Server should never receive p or g value!");
             }
-            if (json.has(Keys.ENCRYPTION)) {
-                info.setS(DiffieHellman.makeServerSecret(info));
+            if (json.has(Key.ENCRYPTION)) {
+                String en = json.getString(Key.ENCRYPTION);
+                if(en.equals(Value.CEASAR) || en.equals(Value.NONE) || en.equals(Value.XOR))
+                info.setEncryption(en);
             }
         }
     }

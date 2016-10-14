@@ -7,6 +7,15 @@ import java.net.Socket;
  */
 public class ClientInfo {
    private Integer p,g,A,B,secretA,secretB,s;
+    String encryption;
+
+    public String getEncryption() {
+        return encryption;
+    }
+
+    public void setEncryption(String encryption) {
+        this.encryption = encryption;
+    }
 
     public Integer getSecretA() {
         return secretA;
@@ -26,6 +35,8 @@ public class ClientInfo {
 
     private int port, id;
     private String name;
+
+
 
     public Integer getP() {
         return p;

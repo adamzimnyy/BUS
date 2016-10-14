@@ -3,20 +3,23 @@ package util;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.fxml.Initializable;
+import javafx.scene.control.*;
 import org.json.JSONObject;
+import util.constant.Key;
+import util.constant.Value;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.URL;
+import java.util.ResourceBundle;
 
 ;
 
-public class Client implements SocketListener {
+public class Client implements SocketListener, Initializable {
     Socket socket;
     BufferedReader in;
     PrintWriter out;
@@ -33,14 +36,24 @@ public class Client implements SocketListener {
     ListView<String> chatWindow;
 
     @FXML
+    RadioButton noneRadio, xorRadio, ceasarRadio;
+    ToggleGroup encryptionGroup;
+
+    @FXML
     public void applyEncryption(ActionEvent e) {
-        //TODO get encryption from radioButton and send json "encryption"
+        if (xorRadio.isSelected()) {
+            send(Key.ENCRYPTION, Value.XOR);
+        } else if (ceasarRadio.isSelected()) {
+            send(Key.ENCRYPTION, Value.CEASAR);
+        } else {
+            send(Key.ENCRYPTION, Value.NONE);
+        }
     }
 
     @FXML
     public void onSendMessage() throws IOException {
         if (!message.getText().isEmpty()) {
-            send(Keys.MESSAGE, message.getText());
+            send(Key.MESSAGE, message.getText());
         }
         message.setText("");
     }
@@ -72,15 +85,15 @@ public class Client implements SocketListener {
     @Override
     public void onMessage(String line) {
         JSONObject json = new JSONObject(line);
-        if (json.has(Keys.MESSAGE)) {
+        if (json.has(Key.MESSAGE)) {
             //TODO encrypt
-            chatWindow.getItems().addAll(json.getString(Keys.MESSAGE));
+            chatWindow.getItems().addAll(json.getString(Key.MESSAGE));
         }
-        if (json.has(Keys.A_VALUE)) {
+        if (json.has(Key.A_VALUE)) {
 
             System.out.println("Client should never receive A value!");
         }
-        if (json.has(Keys.B_VALUE)) {
+        if (json.has(Key.B_VALUE)) {
 
             int b = json.getInt("b");
             info.setB(b);
@@ -91,7 +104,7 @@ public class Client implements SocketListener {
             }
             updateInfo();
         }
-        if (json.has(Keys.P_VALUE)) {
+        if (json.has(Key.P_VALUE)) {
 
             int p = json.getInt("p");
             info.setP(p);
@@ -99,12 +112,12 @@ public class Client implements SocketListener {
             info.setG(g);
             info.setA(DiffieHellman.makeA(info));
             JSONObject aJson = new JSONObject();
-            aJson.put(Keys.A_VALUE, info.getA());
+            aJson.put(Key.A_VALUE, info.getA());
             out.println(aJson.toString());
             out.flush();
             updateInfo();
         }
-        if (json.has(Keys.ENCRYPTION)) {
+        if (json.has(Key.ENCRYPTION)) {
             if (info.isReady()) {
                 info.setS(DiffieHellman.makeClientSecret(info));
                 updateInfo();
@@ -127,6 +140,14 @@ public class Client implements SocketListener {
         else secretALabel.setText("a:");
     }
 
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        encryptionGroup = new ToggleGroup();
+        ceasarRadio.setToggleGroup(encryptionGroup);
+        noneRadio.setToggleGroup(encryptionGroup);
+        xorRadio.setToggleGroup(encryptionGroup);
+    }
+
     private class ChatListener extends Thread {
 
         SocketListener listener;
@@ -137,7 +158,7 @@ public class Client implements SocketListener {
 
         @Override
         public void run() {
-            send(Keys.REQUEST, Keys.KEYS);
+            send(Key.REQUEST, Value.KEYS);
 
             final String line[] = new String[1];
             while (true) {
