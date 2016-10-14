@@ -6,46 +6,48 @@ import java.net.Socket;
  * Created by adamz on 10.10.2016.
  */
 public class ClientInfo {
-   private int p,g,A,B,a,b,s,port, id;
+   private Integer p,g,A,B,a,b,s;
+
+   private int port, id;
     private String name;
 
-    public int getP() {
+    public Integer getP() {
         return p;
     }
 
-    public void setP(int p) {
+    public void setP(Integer p) {
         this.p = p;
     }
 
-    public int getG() {
+    public Integer getG() {
         return g;
     }
 
-    public void setG(int g) {
+    public void setG(Integer g) {
         this.g = g;
     }
 
-    public int getA() {
+    public Integer getA() {
         return A;
     }
 
-    public void setA(int a) {
+    public void setA(Integer a) {
         A = a;
     }
 
-    public int getB() {
+    public Integer getB() {
         return B;
     }
 
-    public void setB(int b) {
+    public void setB(Integer b) {
         B = b;
     }
 
-    public int getS() {
+    public Integer getS() {
         return s;
     }
 
-    public void setS(int s) {
+    public void setS(Integer s) {
         this.s = s;
     }
 

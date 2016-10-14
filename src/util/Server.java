@@ -1,5 +1,7 @@
 package util;
 
+import org.json.JSONObject;
+
 import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedReader;
@@ -11,18 +13,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+@SuppressWarnings("InfiniteLoopStatement")
 public class Server extends JFrame {
 
     private static final long serialVersionUID = 3998655654695771862L;
 
     private static int uniqueId = 0;
     private JTextArea TA;
-    PrintWriter output1;
-    BufferedReader input1;
-    PrintWriter output2;
-    BufferedReader input2;
-    int ready = 0;
-
     private ArrayList<ClientThread> cList = new ArrayList<>();
 
     public static void main(String[] args) {
@@ -30,7 +27,6 @@ public class Server extends JFrame {
         if (args.length != 0)
             s.start(Integer.parseInt(args[0]));
         else s.start(0);
-
     }
 
     public Server() {
@@ -51,38 +47,17 @@ public class Server extends JFrame {
     }
 
     public void start(int port) {
-        boolean keepRunning = true;
-        // create socket
         try {
             ServerSocket server = new ServerSocket(port);
-            while (keepRunning) {
-                server.getInetAddress();
+            while (true) {
                 display("Waiting for client connections on "
                         + InetAddress.getLocalHost().getHostAddress() + ":"
                         + server.getLocalPort());
                 Socket conn = server.accept();
-                if (!keepRunning)
-                    break;
 
                 ClientThread t = new ClientThread(conn);
                 cList.add(t);
                 t.start();
-            }
-
-            try {
-                server.close();
-                for (ClientThread tc : cList) {
-                    try {
-                        tc.in.close();
-                        tc.out.close();
-                        tc.socket.close();
-                    } catch (IOException ioE) {
-                        ioE.printStackTrace();
-                    }
-                }
-
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
             }
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -95,14 +70,19 @@ public class Server extends JFrame {
     }
 
 
-    public synchronized void broadcast(String msg) {
+    private synchronized void broadcast(String msg) {
         for (ClientThread ct : cList) {
             ct.out.println(msg);
             ct.out.flush();
         }
     }
 
-    class ClientThread extends Thread {
+    private synchronized void sendMessage(String msg, ClientThread ct) {
+        ct.out.println(msg);
+        ct.out.flush();
+    }
+
+    class ClientThread extends Thread implements SocketListener {
         PrintWriter out;
         BufferedReader in;
         ClientInfo info = new ClientInfo();
@@ -111,7 +91,7 @@ public class Server extends JFrame {
         ClientThread(Socket socket) {
             info.setId(++uniqueId);
             this.socket = socket;
-
+            ;
             try {
                 in = new BufferedReader(new InputStreamReader(
                         socket.getInputStream()));
@@ -129,11 +109,28 @@ public class Server extends JFrame {
                 try {
                     line = in.readLine();
                     System.out.println("Received message:\n\t" + line);
-                    broadcast(line);
+                    onMessage(line);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println(e);
+                     break;
                 }
             }
+        }
+
+        @Override
+        public void onMessage(String line) {
+              JSONObject json = new JSONObject(line);
+                if (json.has(Keys.MESSAGE)) {
+                    broadcast(line);
+                }
+                if (json.has(Keys.A_VALUE)) {
+                }
+                if (json.has(Keys.B_VALUE)) {
+                }
+                if (json.has(Keys.P_VALUE)) {
+                }
+                if (json.has(Keys.ENCRYPTION)) {
+                }
         }
     }
 }

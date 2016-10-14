@@ -4,7 +4,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import util.SocketListener;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,6 +18,9 @@ public class Client implements SocketListener {
     Socket socket;
     BufferedReader in;
     PrintWriter out;
+
+    ClientInfo info;
+
     @FXML
     TextField message;
 
@@ -27,8 +30,10 @@ public class Client implements SocketListener {
     public void sendMessage() throws IOException {
         System.out.println("Sending message:");
         if (!message.getText().isEmpty()) {
-            out.println(message.getText());
-            System.out.println("\t" + message.getText());
+            JSONObject json = new JSONObject();
+            json.put(Keys.MESSAGE, message.getText());
+            out.println(json.toString());
+            System.out.println("\t" + json.toString());
             out.flush();
         }
         message.setText("");
@@ -58,7 +63,18 @@ public class Client implements SocketListener {
 
     @Override
     public void onMessage(String line) {
-        chatWindow.getItems().addAll(line);
+        JSONObject json = new JSONObject(line);
+        if (json.has(Keys.MESSAGE)) {
+            chatWindow.getItems().addAll(json.getString(Keys.MESSAGE));
+        }
+        if (json.has(Keys.A_VALUE)) {
+        }
+        if (json.has(Keys.B_VALUE)) {
+        }
+        if (json.has(Keys.P_VALUE)) {
+        }
+        if (json.has(Keys.ENCRYPTION)) {
+        }
     }
 
     private class ChatListener extends Thread {
@@ -71,20 +87,15 @@ public class Client implements SocketListener {
 
         @Override
         public void run() {
-          final  String line[] = new String[1];
-
+            final String line[] = new String[1];
             while (true) {
                 try {
                     line[0] = in.readLine();
                     System.out.println("Received message:\n\t" + line[0]);
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            listener.onMessage(line[0]);
-                        }
-                    });
+                    Platform.runLater(() -> listener.onMessage(line[0]));
                 } catch (IOException e) {
                     e.printStackTrace();
+                    return;
                 }
             }
         }
