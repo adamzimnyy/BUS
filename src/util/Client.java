@@ -32,7 +32,7 @@ public class Client implements SocketListener, Initializable {
     TextField messageField;
 
     @FXML
-    Label aLabel, bLabel, pLabel, gLabel, sLabel, secretALabel;
+    Label aLabel, bLabel, pLabel, gLabel, sLabel, secretALabel, encryptionLabel;
 
     @FXML
     ListView<String> chatWindow;
@@ -45,12 +45,17 @@ public class Client implements SocketListener, Initializable {
     public void applyEncryption(ActionEvent e) {
         if (xorRadio.isSelected()) {
             info.setEncryption(Value.XOR);
+            encryptionLabel.setText("Encryption: " + Value.XOR);
             send(Key.ENCRYPTION, Value.XOR);
         } else if (caesarRadio.isSelected()) {
             info.setEncryption(Value.CAESAR);
+            encryptionLabel.setText("Encryption: " + Value.CAESAR);
+
             send(Key.ENCRYPTION, Value.CAESAR);
         } else {
             info.setEncryption(Value.NONE);
+            encryptionLabel.setText("Encryption: " + Value.NONE);
+
             send(Key.ENCRYPTION, Value.NONE);
         }
     }

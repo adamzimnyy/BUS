@@ -13,8 +13,6 @@ public class Caesar {
             if (ascii > (Character.isLowerCase(c) ? 'z' : 'Z')) ascii -= 26;
             encrypted.append((char) ascii);
         }
-      //  System.out.println("Caesar:\n\tE:"+string+" -> "+ encrypted.toString());
-
         return encrypted.toString();
     }
 
@@ -27,9 +25,6 @@ public class Caesar {
             if (ascii < (Character.isLowerCase(c) ? 'a' : 'A')) ascii += 26;
             decrypted.append((char) ascii);
         }
-     //   System.out.println("Caesar:\n\tD:"+string+" -> "+decrypted.toString());
-
-
         return decrypted.toString();
     }
 }

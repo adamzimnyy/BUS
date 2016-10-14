@@ -30,7 +30,7 @@
          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
       </padding>
     </VBox>
-   <VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0">
+   <VBox prefHeight="200.0" prefWidth="150.0" spacing="10.0">
       <children>
          <VBox>
             <children>
@@ -46,11 +46,11 @@
             </VBox.margin>
          </VBox>
          <Separator prefWidth="200.0" />
-         <Label text="Encryption" />
-         <RadioButton fx:id="noneRadio" mnemonicParsing="false" text="none" />
+         <Label fx:id="encryptionLabel" text="Encryption: none" />
+         <RadioButton fx:id="noneRadio" mnemonicParsing="false" selected="true" text="none" />
          <RadioButton mnemonicParsing="false" text="xor" fx:id="xorRadio" />
          <RadioButton fx:id="caesarRadio" mnemonicParsing="false" text="ceasar" />
-         <Button alignment="CENTER" mnemonicParsing="false" onAction="#applyEncryption" text="Apply" VBox.vgrow="ALWAYS" />
+         <Button alignment="CENTER" mnemonicParsing="false" onAction="#applyEncryption" prefHeight="25.0" prefWidth="70.0" text="Apply" VBox.vgrow="ALWAYS" />
          <Separator prefWidth="200.0" />
       </children>
       <padding>
