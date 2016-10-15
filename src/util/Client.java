@@ -115,11 +115,11 @@ public class Client implements SocketListener, Initializable {
             message = new String(Base64.getDecoder().decode(message), StandardCharsets.UTF_8);
             chatWindow.getItems().add(decrypt(message));
         }
-        if (json.has(Key.A_VALUE)) {
+        if (json.has(Key.A_KEY)) {
 
             System.out.println("Client should never receive A value!");
         }
-        if (json.has(Key.B_VALUE)) {
+        if (json.has(Key.B_KEY)) {
 
             int b = json.getInt("b");
             info.setB(b);
@@ -130,7 +130,7 @@ public class Client implements SocketListener, Initializable {
             }
             updateInfo();
         }
-        if (json.has(Key.P_VALUE)) {
+        if (json.has(Key.P_KEY)) {
 
             int p = json.getInt("p");
             info.setP(p);
@@ -138,7 +138,7 @@ public class Client implements SocketListener, Initializable {
             info.setG(g);
             info.setA(DiffieHellman.makeA(info));
             JSONObject aJson = new JSONObject();
-            aJson.put(Key.A_VALUE, info.getA());
+            aJson.put(Key.A_KEY, info.getA());
             out.println(aJson.toString());
             out.flush();
             updateInfo();

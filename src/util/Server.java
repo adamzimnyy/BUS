@@ -55,10 +55,12 @@ public class Server extends JFrame {
     public void start(int port) {
         try {
             ServerSocket server = new ServerSocket(port);
+            DiffieHellman.initPrimes(DiffieHellman.primeSize);
+            display("Waiting for client connections on "
+                    + InetAddress.getLocalHost().getHostAddress() + ":"
+                    + server.getLocalPort());
             while (true) {
-                display("Waiting for client connections on "
-                        + InetAddress.getLocalHost().getHostAddress() + ":"
-                        + server.getLocalPort());
+
                 Socket conn = server.accept();
 
                 ClientThread t = new ClientThread(conn);
@@ -77,17 +79,17 @@ public class Server extends JFrame {
 
 
     private synchronized void broadcast(String msg) {
-        System.out.println("Broadcasting: \n\t"+msg);
+        System.out.println("Broadcasting: \n\t" + msg);
         for (ClientThread ct : cList) {
             String message = ct.encrypt(msg);
-            System.out.println("\tencrypted: "+message);
+            System.out.println("\tencrypted: " + message);
 
             String encoded = Base64.getEncoder().encodeToString(message.getBytes(StandardCharsets.UTF_8));
-            System.out.println("\tencoded: "+encoded);
+            System.out.println("\tencoded: " + encoded);
 
             JSONObject json = new JSONObject();
-            json.put(Key.MESSAGE,encoded);
-            System.out.println("\tjson: "+json.toString());
+            json.put(Key.MESSAGE, encoded);
+            System.out.println("\tjson: " + json.toString());
 
             sendJson(json.toString(), ct);
         }
@@ -138,7 +140,7 @@ public class Server extends JFrame {
 
         private String decrypt(String s) {
             if (info.getEncryption() != null && info.getEncryption().equals(Value.CAESAR)) {
-                System.out.println("Decrypted: "+Caesar.decrypt(s, info.getS()));
+                System.out.println("Decrypted: " + Caesar.decrypt(s, info.getS()));
                 return Caesar.decrypt(s, info.getS());
             } else if (info.getEncryption() != null && info.getEncryption().equals(Value.XOR)) {
                 //TODO Xor cipher
@@ -169,8 +171,8 @@ public class Server extends JFrame {
             if (json.has(Key.REQUEST)) {
                 if (json.getString(Key.REQUEST).equals(Value.KEYS)) {
                     JSONObject pgJson = new JSONObject();
-                    pgJson.put(Key.P_VALUE, DiffieHellman.generateP());
-                    pgJson.put(Key.G_VALUE, DiffieHellman.generateG());
+                    pgJson.put(Key.P_KEY, DiffieHellman.generateP());
+                    pgJson.put(Key.G_KEY, DiffieHellman.generateG());
                     sendJson(pgJson.toString(), this);
                     try {
                         sleep(500);
@@ -178,23 +180,26 @@ public class Server extends JFrame {
                         e.printStackTrace();
                     }
                     JSONObject bJson = new JSONObject();
-                    bJson.put(Key.B_VALUE, info.getB());
+                    bJson.put(Key.B_KEY, info.getB());
                     sendJson(bJson.toString(), this);
                 }
             }
 
-            if (json.has(Key.A_VALUE)) {
+            if (json.has(Key.A_KEY)) {
                 int a = json.getInt("a");
                 info.setA(a);
 
-                if (info.isReady())
+                if (info.isReady()) {
                     info.setS(DiffieHellman.makeServerSecret(info));
+                    System.out.println(info.toString());
+                    display(info.toString());
+                }
             }
-            if (json.has(Key.B_VALUE)) {
+            if (json.has(Key.B_KEY)) {
                 System.out.println("Server should never receive B value!");
 
             }
-            if (json.has(Key.P_VALUE)) {
+            if (json.has(Key.P_KEY)) {
                 System.out.println("Server should never receive p or g value!");
             }
             if (json.has(Key.ENCRYPTION)) {

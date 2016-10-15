@@ -105,4 +105,18 @@ public class ClientInfo {
     public boolean isReady() {
         return A != null && B != null && p != null & g != null;
     }
+
+    @Override
+    public String toString() {
+        return "ClientInfo\n{" +
+                "\n\tid=" + id +
+                ", \n\tp=" + p +
+                ", \n\tg=" + g +
+                ", \n\tA=" + A +
+                ", \n\tB=" + B +
+                ", \n\tsecretA=" + secretA +
+                ", \n\tsecretB=" + secretB +
+                ", \n\ts=" + s +
+                "\n}";
+    }
 }

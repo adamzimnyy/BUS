@@ -5,11 +5,11 @@ package util.constant;
  */
 public class Key {
     public static final String MESSAGE = "msg";
-    public static final String A_VALUE = "a";
-    public static final String B_VALUE = "b";
-    public static final String P_VALUE = "p";
-    public static final String G_VALUE = "g";
-    public static final String S_VALUE = "s";
+    public static final String A_KEY = "a";
+    public static final String B_KEY = "b";
+    public static final String P_KEY = "p";
+    public static final String G_KEY = "g";
+    public static final String S_KEY = "s";
     public static final String ENCRYPTION = "encryption";
     public static final String REQUEST = "request";
 }
