@@ -10,6 +10,7 @@ import util.constant.Key;
 import util.constant.Value;
 import util.crypto.Caesar;
 import util.crypto.DiffieHellman;
+import util.crypto.Xor;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -77,7 +78,7 @@ public class Client implements SocketListener, Initializable {
             return Caesar.encrypt(message, info.getS());
         }
         if (info.getEncryption().equals(Value.XOR)) {
-
+            return Xor.encrypt(message, info.getS());
         }
         return message;
     }
@@ -157,7 +158,7 @@ public class Client implements SocketListener, Initializable {
             return Caesar.decrypt(message, info.getS());
         }
         if (info.getEncryption().equals(Value.XOR)) {
-
+            return Xor.encrypt(message, info.getS());
         }
         return message;
     }

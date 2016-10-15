@@ -5,6 +5,7 @@ import util.constant.Key;
 import util.constant.Value;
 import util.crypto.Caesar;
 import util.crypto.DiffieHellman;
+import util.crypto.Xor;
 
 import javax.swing.*;
 import java.awt.*;
@@ -70,7 +71,7 @@ public class Server extends JFrame {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-    }// start()
+    }
 
     private void display(String msg) {
         TA.append(msg + "\n");
@@ -143,7 +144,7 @@ public class Server extends JFrame {
                 System.out.println("Decrypted: " + Caesar.decrypt(s, info.getS()));
                 return Caesar.decrypt(s, info.getS());
             } else if (info.getEncryption() != null && info.getEncryption().equals(Value.XOR)) {
-                //TODO Xor cipher
+                return Xor.encrypt(s, info.getS());
             }
             return s;
         }
@@ -154,7 +155,7 @@ public class Server extends JFrame {
                 return Caesar.encrypt(message, info.getS());
             }
             if (info.getEncryption().equals(Value.XOR)) {
-
+                return Xor.encrypt(message, info.getS());
             }
             return message;
         }
