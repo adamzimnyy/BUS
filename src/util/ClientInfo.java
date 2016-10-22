@@ -1,13 +1,73 @@
 package util;
 
+import java.math.BigInteger;
 import java.net.Socket;
 
 /**
  * Created by adamz on 10.10.2016.
  */
 public class ClientInfo {
-   private Integer p,g,A,B,secretA,secretB,s;
+   private BigInteger p,g,A,B,secretA,secretB,s;
    private String encryption;
+
+    private int port, id;
+    private String name;
+
+    public BigInteger getP() {
+        return p;
+    }
+
+    public void setP(BigInteger p) {
+        this.p = p;
+    }
+
+    public BigInteger getG() {
+        return g;
+    }
+
+    public void setG(BigInteger g) {
+        this.g = g;
+    }
+
+    public BigInteger getA() {
+        return A;
+    }
+
+    public void setA(BigInteger a) {
+        A = a;
+    }
+
+    public BigInteger getB() {
+        return B;
+    }
+
+    public void setB(BigInteger b) {
+        B = b;
+    }
+
+    public BigInteger getSecretA() {
+        return secretA;
+    }
+
+    public void setSecretA(BigInteger secretA) {
+        this.secretA = secretA;
+    }
+
+    public BigInteger getSecretB() {
+        return secretB;
+    }
+
+    public void setSecretB(BigInteger secretB) {
+        this.secretB = secretB;
+    }
+
+    public BigInteger getS() {
+        return s;
+    }
+
+    public void setS(BigInteger s) {
+        this.s = s;
+    }
 
     public String getEncryption() {
         return encryption;
@@ -15,67 +75,6 @@ public class ClientInfo {
 
     public void setEncryption(String encryption) {
         this.encryption = encryption;
-    }
-
-    public Integer getSecretA() {
-        return secretA;
-    }
-
-    public void setSecretA(Integer secretA) {
-        this.secretA = secretA;
-    }
-
-    public Integer getSecretB() {
-        return secretB;
-    }
-
-    public void setSecretB(Integer secretB) {
-        this.secretB = secretB;
-    }
-
-    private int port, id;
-    private String name;
-
-
-
-    public Integer getP() {
-        return p;
-    }
-
-    public void setP(Integer p) {
-        this.p = p;
-    }
-
-    public Integer getG() {
-        return g;
-    }
-
-    public void setG(Integer g) {
-        this.g = g;
-    }
-
-    public Integer getA() {
-        return A;
-    }
-
-    public void setA(Integer a) {
-        A = a;
-    }
-
-    public Integer getB() {
-        return B;
-    }
-
-    public void setB(Integer b) {
-        B = b;
-    }
-
-    public Integer getS() {
-        return s;
-    }
-
-    public void setS(Integer s) {
-        this.s = s;
     }
 
     public int getPort() {

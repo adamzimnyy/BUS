@@ -52,8 +52,10 @@
          <RadioButton fx:id="caesarRadio" mnemonicParsing="false" text="ceasar" />
          <Button alignment="CENTER" mnemonicParsing="false" onAction="#applyEncryption" prefHeight="25.0" prefWidth="70.0" text="Apply" VBox.vgrow="ALWAYS" />
          <Separator prefWidth="200.0" />
+         <Label text="Name:" />
+         <TextField fx:id="nameField" />
       </children>
       <padding>
-         <Insets left="10.0" />
+         <Insets left="10.0" right="10.0" />
       </padding></VBox>
 </HBox>

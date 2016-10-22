@@ -12,4 +12,6 @@ public class Key {
     public static final String S_KEY = "s";
     public static final String ENCRYPTION = "encryption";
     public static final String REQUEST = "request";
+    public static final String FROM = "from";
+
 }

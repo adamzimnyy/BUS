@@ -1,7 +1,14 @@
 package util.crypto;
 
 import util.ClientInfo;
+import util.Variables;
 
+import javax.crypto.spec.DHParameterSpec;
+import java.math.BigInteger;
+import java.security.AlgorithmParameterGenerator;
+import java.security.AlgorithmParameters;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -10,13 +17,8 @@ import java.util.Random;
  */
 public class DiffieHellman {
     private static boolean[] primes;
-    public static final int primeSize = 100;
+    public static final int primeSize = 1000;
 
-    /**
-     * Tworzy tablicę z informacją, czy liczba jest liczbą pierwszą dla liczb od 0 do <i>size</i>
-     *
-     * @param size rozmiar tablicy
-     */
     public static void initPrimes(int size) {
         primes = new boolean[size];
         Arrays.fill(primes, true);        // assume all integers are prime.
@@ -32,66 +34,67 @@ public class DiffieHellman {
         }
     }
 
-    /**
-     * Sprawdza, czy zadana liczba jest liczbą pierwszą.
-     *
-     * @param n sprawdzana liczba
-     * @return <b>true</b> jeśli <i>n</i> jest liczbą pierwszą lub <b>false</b> jeśli nie jest.
-     */
     private static boolean isPrime(int n) {
         if (primes == null) initPrimes(DiffieHellman.primeSize);
         return n < primes.length && primes[n];
-
     }
 
-    /**
-     * Zwraca losową liczbę pierwszą z zakresu 0 - {@value #primeSize}
-     *
-     * @return liczba pierwsza
-     */
-    public static Integer generateP() {
+    public static BigInteger generateP() throws NoSuchAlgorithmException, InvalidParameterSpecException {
+        if (Variables.useBigNumbers) {
+            AlgorithmParameterGenerator paramGen = AlgorithmParameterGenerator.getInstance("DH");
+            paramGen.init(512); // number of bits
+            AlgorithmParameters params = paramGen.generateParameters();
+            DHParameterSpec dhSpec = params.getParameterSpec(DHParameterSpec.class);
+           return dhSpec.getP();
+        } else {
+
+            Random r = new Random();
+            if (primes == null) initPrimes(primeSize);
+            int i = r.nextInt(primes.length);
+            while (!isPrime(i)) i = r.nextInt(primes.length);
+            return BigInteger.valueOf(i);
+        }
+    }
+
+    public static BigInteger generateG() throws NoSuchAlgorithmException, InvalidParameterSpecException {
+        if (Variables.useBigNumbers) {
+            AlgorithmParameterGenerator paramGen = AlgorithmParameterGenerator.getInstance("DH");
+            paramGen.init(512); // number of bits
+            AlgorithmParameters params = paramGen.generateParameters();
+            DHParameterSpec dhSpec = params.getParameterSpec(DHParameterSpec.class);
+
+            return dhSpec.getG();
+        } else {
+            Random r = new Random();
+
+            return BigInteger.valueOf(r.nextInt(30));
+        }
+    }
+
+    public static BigInteger makeClientSecret(ClientInfo info) {
+        return info.getB().pow(info.getSecretA().intValue()).mod(info.getP());
+        //  return Math.pow(info.getB(), info.getSecretA()) % info.getP();
+    }
+
+    public static BigInteger makeServerSecret(ClientInfo info) {
+        return info.getA().pow(info.getSecretB().intValue()).mod(info.getP());
+
+        //  return (int) Math.pow(info.getA(), info.getSecretB()) % info.getP();
+    }
+
+    public static BigInteger getInitialSecret() {
         Random r = new Random();
-        if (primes == null) initPrimes(primeSize);
-        int i = r.nextInt(primes.length);
-        while (!isPrime(i)) i = r.nextInt(primes.length);
-        return i;
+        int i = r.nextInt(50) + 11;
+        return BigInteger.valueOf(i);
     }
 
-    public static Integer generateG() {
-        return 9;
+    public static BigInteger makeA(ClientInfo info) {
+        return info.getG().pow(info.getSecretA().intValue()).mod(info.getP());
+        //  return (int) Math.pow(info.getG(), info.getSecretA()) % info.getP();
     }
 
-    /**
-     * Tworzy klucz szyfrowania na podstawie zadanych wartości po stronie klienta
-     *
-     * @param info wartości parametrów protokołu Diffiego-Hellmana
-     * @return s, klucz szyfrowania
-     */
-    public static Integer makeClientSecret(ClientInfo info) {
-        return (int) Math.pow(info.getB(), info.getSecretA()) % info.getP();
-    }
-
-    /**
-     * Tworzy klucz szyfrowania na podstawie zadanych wartości po stronie serwera
-     *
-     * @param info wartości parametrów protokołu Diffiego-Hellmana
-     * @return s, klucz szyfrowania
-     */
-    public static Integer makeServerSecret(ClientInfo info) {
-        return (int) Math.pow(info.getA(), info.getSecretB()) % info.getP();
-    }
-
-    public static Integer getInitialSecret() {
-        Random r = new Random();
-        int i = r.nextInt(20) + 5;
-        return i;
-    }
-
-    public static Integer makeA(ClientInfo info) {
-        return (int) Math.pow(info.getG(), info.getSecretA()) % info.getP();
-    }
-
-    public static Integer makeB(ClientInfo info) {
-        return (int) Math.pow(info.getG(), info.getSecretB()) % info.getP();
+    public static BigInteger makeB(ClientInfo info) {
+        return info.getG().pow(info.getSecretB().intValue()).mod(info.getP());
+        //  return (int) Math.pow(info.getG(), info.getSecretB()) % info.getP();
     }
 }

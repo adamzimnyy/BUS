@@ -30,7 +30,7 @@ public class Client implements SocketListener, Initializable {
     ClientInfo info;
 
     @FXML
-    TextField messageField;
+    TextField messageField, nameField;
 
     @FXML
     Label aLabel, bLabel, pLabel, gLabel, sLabel, secretALabel, encryptionLabel;
@@ -72,23 +72,29 @@ public class Client implements SocketListener, Initializable {
         messageField.setText("");
     }
 
+    private void send(String key, String value) {
+        JSONObject json = new JSONObject();
+        json.put(key, value);
+        if(Key.MESSAGE.equals(key))
+            json.put(Key.FROM, nameField.getText());
+        out.println(json.toString());
+        out.flush();
+    }
+
     public String encrypt(String message) {
         if (info.getEncryption() == null) return message;
         if (info.getEncryption().equals(Value.CAESAR)) {
             return Caesar.encrypt(message, info.getS());
         }
         if (info.getEncryption().equals(Value.XOR)) {
-            return Xor.encrypt(message, info.getS());
+          // return Xor.encrypt(message, info.getS());
+            return new String(Xor.encrypt(message, info.getS()));
+
         }
         return message;
     }
 
-    private void send(String key, String value) {
-        JSONObject json = new JSONObject();
-        json.put(key, value);
-        out.println(json.toString());
-        out.flush();
-    }
+
 
     public void startClient(String ip, int port) {
         info = new ClientInfo();
@@ -96,36 +102,30 @@ public class Client implements SocketListener, Initializable {
         info.setSecretA(DiffieHellman.getInitialSecret());
         updateInfo();
         try {
-            socket = new Socket(ip, port);
+            socket = new Socket(ip.trim(), port);
             in = new BufferedReader(new InputStreamReader(
                     socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
-
+            new ChatListener(this).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        new ChatListener(this).start();
     }
 
     @Override
     public void onMessage(String line) {
         JSONObject json = new JSONObject(line);
         if (json.has(Key.MESSAGE)) {
-
             String message = json.getString(Key.MESSAGE);
             message = new String(Base64.getDecoder().decode(message), StandardCharsets.UTF_8);
-            chatWindow.getItems().add(decrypt(message));
+            chatWindow.getItems().add(json.get(Key.FROM)+": "+decrypt(message));
         }
         if (json.has(Key.A_KEY)) {
 
             System.out.println("Client should never receive A value!");
         }
         if (json.has(Key.B_KEY)) {
-
-            int b = json.getInt("b");
-            info.setB(b);
-
-
+            info.setB(json.getBigInteger("b"));
             if (info.isReady()) {
                 info.setS(DiffieHellman.makeClientSecret(info));
             }
@@ -133,10 +133,8 @@ public class Client implements SocketListener, Initializable {
         }
         if (json.has(Key.P_KEY)) {
 
-            int p = json.getInt("p");
-            info.setP(p);
-            int g = json.getInt("g");
-            info.setG(g);
+            info.setP(json.getBigInteger("p"));
+            info.setG(json.getBigInteger("g"));
             info.setA(DiffieHellman.makeA(info));
             JSONObject aJson = new JSONObject();
             aJson.put(Key.A_KEY, info.getA());
@@ -158,7 +156,8 @@ public class Client implements SocketListener, Initializable {
             return Caesar.decrypt(message, info.getS());
         }
         if (info.getEncryption().equals(Value.XOR)) {
-            return Xor.encrypt(message, info.getS());
+            //return Xor.encrypt(message, info.getS());
+            return new String(Xor.encrypt(message, info.getS()));
         }
         return message;
     }
@@ -206,6 +205,7 @@ public class Client implements SocketListener, Initializable {
                     Platform.runLater(() -> listener.onMessage(line[0]));
                 } catch (IOException e) {
                     e.printStackTrace();
+
                     return;
                 }
             }

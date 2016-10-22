@@ -17,6 +17,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.ArrayList;
 import java.util.Base64;
 
@@ -39,7 +41,7 @@ public class Server extends JFrame {
     public Server() {
         super("Server");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(new Dimension(400, 307));
+        setSize(new Dimension(1600, 900));
         Container c = getContentPane();
         c.setBackground(Color.BLACK);
         getContentPane().setLayout(null);
@@ -48,7 +50,7 @@ public class Server extends JFrame {
         TA.setBackground(Color.BLACK);
         TA.setForeground(Color.GREEN);
         JScrollPane scrollPane = new JScrollPane(TA);
-        scrollPane.setBounds(0, 0, 384, 269);
+        scrollPane.setBounds(0, 0, 1600, 900);
         c.add(scrollPane);
         setVisible(true);
     }
@@ -79,19 +81,13 @@ public class Server extends JFrame {
     }
 
 
-    private synchronized void broadcast(String msg) {
-        System.out.println("Broadcasting: \n\t" + msg);
+    private synchronized void broadcast(String msg, String name) {
         for (ClientThread ct : cList) {
             String message = ct.encrypt(msg);
-            System.out.println("\tencrypted: " + message);
-
             String encoded = Base64.getEncoder().encodeToString(message.getBytes(StandardCharsets.UTF_8));
-            System.out.println("\tencoded: " + encoded);
-
             JSONObject json = new JSONObject();
             json.put(Key.MESSAGE, encoded);
-            System.out.println("\tjson: " + json.toString());
-
+            json.put(Key.FROM, name);
             sendJson(json.toString(), ct);
         }
     }
@@ -108,13 +104,14 @@ public class Server extends JFrame {
         Socket socket;
 
         ClientThread(Socket socket) {
-            info.setId(++uniqueId);
-            info.setSecretB(DiffieHellman.getInitialSecret());
-            info.setP(DiffieHellman.generateP());
-            info.setG(DiffieHellman.generateG());
-            info.setB(DiffieHellman.makeB(info));
-            this.socket = socket;
+
             try {
+                info.setId(++uniqueId);
+                info.setSecretB(DiffieHellman.getInitialSecret());
+                info.setP(DiffieHellman.generateP());
+                info.setG(DiffieHellman.generateG());
+                info.setB(DiffieHellman.makeB(info));
+                this.socket = socket;
                 in = new BufferedReader(new InputStreamReader(
                         socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
@@ -122,6 +119,8 @@ public class Server extends JFrame {
                         + socket.getRemoteSocketAddress() + ".");
             } catch (IOException ioe) {
                 display("Error creating in/out in ClientThread");
+            } catch (NoSuchAlgorithmException | InvalidParameterSpecException e) {
+                e.printStackTrace();
             }
         }
 
@@ -144,7 +143,9 @@ public class Server extends JFrame {
                 System.out.println("Decrypted: " + Caesar.decrypt(s, info.getS()));
                 return Caesar.decrypt(s, info.getS());
             } else if (info.getEncryption() != null && info.getEncryption().equals(Value.XOR)) {
-                return Xor.encrypt(s, info.getS());
+                //   return Xor.encrypt(s, info.getS());
+                return new String(Xor.encrypt(s, info.getS()));
+
             }
             return s;
         }
@@ -155,7 +156,9 @@ public class Server extends JFrame {
                 return Caesar.encrypt(message, info.getS());
             }
             if (info.getEncryption().equals(Value.XOR)) {
-                return Xor.encrypt(message, info.getS());
+                //  return Xor.encrypt(message, info.getS());
+                return new String(Xor.encrypt(message, info.getS()));
+
             }
             return message;
         }
@@ -163,17 +166,24 @@ public class Server extends JFrame {
         @Override
         public void onMessage(String line) {
             JSONObject json = new JSONObject(line);
+            display(line);
             if (json.has(Key.MESSAGE)) {
                 String encoded = json.getString(Key.MESSAGE);
                 String encrypted = new String(Base64.getDecoder().decode(encoded), StandardCharsets.UTF_8);
                 String message = decrypt(encrypted);
-                broadcast(message);
+                String name = json.getString(Key.FROM);
+                broadcast(message,name);
             }
             if (json.has(Key.REQUEST)) {
                 if (json.getString(Key.REQUEST).equals(Value.KEYS)) {
                     JSONObject pgJson = new JSONObject();
-                    pgJson.put(Key.P_KEY, DiffieHellman.generateP());
-                    pgJson.put(Key.G_KEY, DiffieHellman.generateG());
+                    try {
+                        pgJson.put(Key.P_KEY, DiffieHellman.generateP());
+                        pgJson.put(Key.G_KEY, DiffieHellman.generateG());
+
+                    } catch (NoSuchAlgorithmException | InvalidParameterSpecException e) {
+                        e.printStackTrace();
+                    }
                     sendJson(pgJson.toString(), this);
                     try {
                         sleep(500);
@@ -187,9 +197,7 @@ public class Server extends JFrame {
             }
 
             if (json.has(Key.A_KEY)) {
-                int a = json.getInt("a");
-                info.setA(a);
-
+                info.setA(json.getBigInteger("a"));
                 if (info.isReady()) {
                     info.setS(DiffieHellman.makeServerSecret(info));
                     System.out.println(info.toString());

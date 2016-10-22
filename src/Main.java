@@ -9,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import util.Server;
+import util.Variables;
 
 import java.io.IOException;
 
@@ -23,12 +24,12 @@ public class Main extends Application {
     @FXML
     TextField serverPort;
 
-
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("fxml/start.fxml"));
-        primaryStage.setTitle("Hello World");
+        primaryStage.setTitle("Chat");
         primaryStage.setScene(new Scene(root, 300, 275));
+        primaryStage.requestFocus();
         primaryStage.show();
     }
 
@@ -47,7 +48,8 @@ public class Main extends Application {
             Client controller = loader.getController();
             controller.startClient(clientIp.getText(),Integer.parseInt(clientPort.getText()));
             //hide this current window (if this is whant you want
-            ((Node) (event.getSource())).getScene().getWindow().hide();
+           Variables.window =  ((Node) (event.getSource())).getScene().getWindow();
+            Variables.window.hide();
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,6 +1,6 @@
 package util.crypto;
 
-import java.nio.charset.Charset;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -8,12 +8,13 @@ import java.nio.charset.StandardCharsets;
  */
 public class Xor {
 
-    public static String encrypt(String string, int secret){
-        byte b = (byte) secret;
-        StringBuilder encrypted = new StringBuilder();
-        for(byte c : string.getBytes(StandardCharsets.UTF_8)){
-           encrypted.append((char)(c ^ b));
+    public static byte[] encrypt(String string, BigInteger secret) {
+        byte[] a = string.getBytes();
+        byte[] key = secret.toByteArray();
+        byte[] out = new byte[a.length];
+        for (int i = 0; i < a.length; i++) {
+            out[i] = (byte) (a[i] ^ key[key.length-1]);
         }
-        return encrypted.toString();
+        return out;
     }
 }
