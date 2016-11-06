@@ -1,0 +1,327 @@
+\documentclass[a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{polski}
+\usepackage[cp1250]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{listings}
+
+\newcommand{\code}[1]{{\lstinline[basicstyle=\ttfamily\color{black}] |#1| }}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ %
+  backgroundcolor=\color{white},   % choose the background color
+  basicstyle=\footnotesize,        % size of fonts used for the code
+  breaklines=true,                 % automatic line breaking only at whitespace
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+  keywordstyle=\color{blue},       % keyword style
+  stringstyle=\color{mymauve},     % string literal style
+  xleftmargin=2cm,
+  xrightmargin=2cm
+}
+
+\title{ Bezp. syst. i us³ug inform. 2\\{\huge Gra programistyczna Hackme} \\}
+\author{Adam Zimny 209787}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Cel projektu}
+\indent \par Celem projektu by³o przejœcie dwóch gier polegaj¹cych na rozwi¹zywaniu ³amig³ówek wykorzystuj¹cych wiedzê programistyczn¹. Ka¿da z gier z³o¿ona by³a z 8 poziomów. W celu przejœcia do kolejnego poziomu nale¿a³o podaæ has³o, które ukryte by³o w kodzie Ÿród³owym strony. 
+\section{Realizacja}
+
+\indent \par Rozwi¹zanie ka¿dego poziomu nale¿a³o rozpocz¹æ od analizy Ÿród³a strony, oraz w wielu przypadkach analizy kodu skryptów na niej siê znajduj¹cych. Przy rozwi¹zaywaniu zadañ przydatna by³a konsola developerska Google Chrome.
+\subsection{Hackme}
+Poziom trudnoœci pierwszej z gier by³ niski. Rozwi¹zanie wiêkszoœci poziomów mo¿na by³o znaleŸæ poprzez ustawienie punktu wstrzymania w linii skryptu odpowiadaj¹ej za sprawdzenie poprawnoœci has³a, a nastêpnie sprawdzenie, z jak¹ wartoœci¹ jest porównywany tekst wpisany przez u¿ytkownika.
+\paragraph{Poziom 1} 
+\indent \par
+Poprawne has³o dla tego poziomu to \code{a jednak umiem czytac}. Has³o by³o ukryte w kodzie Ÿród³owym strony, ukryte przez liczne znaki nowej linii, tak aby znalaz³o siê na nowej stronie 
+
+\begin{lstlisting}
+<script>
+function sprawdz(){
+	if (document.getElementById('haslo').value=='a jednak umiem czytac') 
+	{
+		self.location.href='ok_next.htm';
+	} else {
+		alert('Zle haselko :)');
+	}
+}
+</script>
+
+\end{lstlisting}
+
+
+\paragraph{Poziom 2}\indent\par 
+
+Poprawne has³o dla tego poziomu to \code{to bylo za proste}. Skrypt porównuje wpisany przez u¿ytkownika tekst z wartoœci¹ zmiennej. W kodzie Ÿród³owym strony znaleŸæ mo¿emy do³¹czony plik JavaScript zawieraj¹cy definicje zmiennych u¿ytych przy sprawdzaniu has³a. 
+
+\begin{lstlisting} 
+<script src="haselko.js"></script>
+<script>
+function sprawdz(){
+if (document.getElementById('haslo').value==has) {self.location.href=adresik;} else {alert('Nie... to nie to haslo...');}
+}
+</script>
+
+\end{lstlisting}
+Po otwarciu tego pliku w przegl¹darce otrzymamy wartoœci poprawnego has³a oraz adresu kolejnego poziomu.
+
+\begin{lstlisting} 
+var has='to bylo za proste';
+var adresik='formaster.htm';
+\end{lstlisting}
+\paragraph{Poziom 3}\indent\par 
+
+Poprawne has³o dla tego poziomu to \code{cdqwenow}. Skrypt tworzy has³o korzystaj¹c z wartoœci zmiennych \code{var dod='unknow';
+} oraz \code{var literki='abcdefgh';
+}
+Do utworzenia has³a wykorzystywana jest funkcja \code{substring()} pobieraj¹ca wskazany fragment ³añcucha znaków. 
+\begin{lstlisting}
+
+ost=literki.substring(2,4)  // "cd"
++'qwe'
++dod.substring(3,6);   // "now"
+ 
+\end{lstlisting}
+
+Innym sposobem rozwi¹zania tego poziomu jest wykorzystanie konsoli do sprawdzenia oczekiwanej wartoœci. Po otwarciu pliku Ÿród³owego i ustawieniu punktu przerwania nale¿y dodaæ zmienn¹ \code{ost} do okna Watch i uruchomiæ skrypt. Po zatrzymaniu w ustawionym punkcie mo¿na odczytaæ has³o. 
+
+\begin{figure}[h]\centering
+\includegraphics[width=16cm]{ost.jpg}
+\end{figure}
+\paragraph{Poziom 4}\indent\par 
+Poprawne has³o dla tego poziomu to \code{171}. W celu jego uzyskania nale¿y obliczyæ wartoœæ wyra¿enia \code{wynik=(Math.round(6\%2)*(258456/2))+(300/4)*2/3+121}. Wyra¿enie \code{Math.round()} zaokr¹gla liczbê do najbli¿szej liczby ca³kowitej, a znak \code{\%} oznacza resztê z dzielenia, która wynosi w tym przypadku 0. 
+. Wyra¿enie mo¿e zostaæ uproszczone do \code{0 + 50 + 121} co daje wynik 171. 
+
+Oczywiœcie, podobnie jak w przypadku poprzedniego poziomu, wartoœæ mo¿e byæ odczytana z kosoli developerskiej:
+\begin{figure}[H]\centering
+\includegraphics[width=12cm]{zaq.jpg}
+\end{figure}
+\paragraph{Poziom 5}\indent\par 
+
+Poprawne has³o dla tego poziomu to dowolna liczba nieparzysta. Has³o nale¿y wprowadziæ gdy na zegarze pojawi siê wartoœæ 42s. Funckja sprawdzaj¹ca poprawnoœæ has³a oblicza wartoœæ na podstawie wprowadzonej przez u¿ytkownika wartoœci oraz wartoœci zegara. 
+
+\begin{lstlisting} 
+
+function sprawdz(){
+ile=((seconds*(seconds-1))/2)*(document.getElementById('pomoc').value%2);
+if (ile==861) {self.location.href=seconds+'x.htm'} else {alert('Zle haslo!');}
+}
+
+\end{lstlisting} 
+W celu uzyskania poprawnej wartoœci nale¿y zatem rozwi¹zaæ równianie z niewiadom¹: 
+
+\code{x*(x-1)/2*(i mod 2) = 861} gdzie \code{x} to wartoœæ zegara, a \code{i} wartoœæ wprowadzana przez u¿ytkownika. Z równania widaæ, ¿e wartoœæ zmiennej nie ma znaczenia, istatna jest tylko jej parzystoœæ. Po wprowadzeniu równania do serwisu WolframAlpha uzyskuje siê nastêpuj¹ce rozwi¹zania: 
+
+\begin{figure}[H]\centering
+\includegraphics[width=8cm]{wolf.jpg}
+\end{figure}
+\paragraph{Poziom 6}\indent\par 
+
+Poprawne has³o dla tego poziomu to \code{bxd_ex_ex}. Wartoœæ generowana jest przez pêtlê: 
+\begin{lstlisting}
+var lit='abcdqepolsrc';
+var licznik=0;
+var hsx='';
+var znak='';
+for (i=1; i<=5; i+=2){
+	licznik++;
+	if ((licznik\%2)==0) {znak='_';} else {znak='x';}
+	hsx+=lit.substring(i,i+1)+znak;
+}
+hsx+=hsx.substring(hsx.length-3,hsx.length);
+\end{lstlisting} 
+Pêtla wykonuje 3 iteracje dla \code{i = 1,3,5}. Wartoœci po zakoñczeniu iteracji pokazuje tabela:
+
+
+\begin{tabular}{ |c|c|c|c|c|}
+ \hline
+  iteracja & i & licznik & znak & hsx \\ \hline
+  1 & 1 & 1 & x & bx	\\ \hline
+  2 & 3 & 2 & \_ & bxd\_ \\ \hline 
+  3 & 5 & 3 & x & bxd\_ex\_ \\ \hline
+\end{tabular}
+
+
+\indent \par Wartoœæ zmiennej \code{hsx} mo¿e tak¿e zostaæ odczytana z konsoli w sposób opisany w poprzednich poziomach.
+\paragraph{Poziom 7}\indent\par 
+
+Poprawne has³o dla tego poziomu to \code{kocham cie}. Litery w haœle nale¿y zast¹piæ lustrzanie wzglêdem œrodka alfabetu, tzn. \code{a}na \code{z}, \code{b}na \code{y} itd. tak tak aby uzyskaæ ci¹g znaków \code{plxszn_xrv}. Rozwi¹zanie mo¿na odczytaæ w ten sam sposób, zmieniaj¹c znaki w tekœcie zarzyfrowanym wed³ug tej samej zasady. 
+
+\paragraph{Poziom 8}\indent\par 
+Poprawne has³o dla tego poziomu to \code{qrupjf162}. Rozwi¹zanie tego poziomu uzyskuje siê w podobny sposób do poziomu 6, analizuj¹c przebieg pêtli generuj¹cej ci¹g znaków. 
+
+\begin{lstlisting}
+
+alf='qwertyuioplkjhgfdsazxcvbnm';
+qet=0; 
+for (i=0; i<=10; i+=2){
+	get+=10; 
+	wyn+=alf.charAt(qet+i); 
+	qet++;
+}
+wyn+=eval(ax*bx*cx);
+
+\end{lstlisting} 
+
+Wartoœci zmiennych \code{ax, bx, cx} zdefiniowane s¹ w osobnym pliku JavaScript. Aby uzyskaæ do niego dostêp trzeba odkodowaæ nazwê pliku z linii
+
+\begin{lstlisting}
+document.write('<\s'+'c'+'r'+'i'+'p'+'t src="\%7A\%73\%65\%64\%63\%78\%2E\%6A\%73"><\/s'+'c'+'r'+'i'+'p'+'t'+'>');
+\end{lstlisting}
+. Tekst jest zakodowany jako URL, mo¿na go odczytaæ korzystaj¹c z narzêdzia \code{http://coderstoolbox.net/string}. Zawartoœæ odczytanego pliku \code{zsedcx.js}to:
+
+\begin{lstlisting}
+ax=eval(2+2*2);
+bx=eval(ax/2);
+cx=eval(ax+bx);
+get=0;
+\end{lstlisting}
+\subsection{Hackme 2.0}
+
+\paragraph{Poziom 1} \indent\par
+Poprawne has³o dla tego poziomu to \code{text}. Wartoœæ wpisana przez uzytkownika porównywana jest z wartoœci¹ pola \code{formularz} dokumentu html. Polu zosta³ nadany atrybut \code{hidden}, aby nie wyswietla³o siê na stronie.
+
+\begin{lstlisting}
+if (document.getElementById('formularz').value==document.getElementById('haslo').value)
+...
+<input value="text" name="formularz" id="formularz" type="hidden">
+\end{lstlisting}
+\paragraph{Poziom 2}\indent\par 
+Poprawne has³o dla tego poziomu to \code{banalne}. Ponownie tekst jest zakodowany jako URL, nale¿y go odkodowaæ korzystaj¹c z odpowiedniego narzêdzia. W skrypcie wartoœæ jest odczytywana przy pomocy funkcji \code{unescape()}.
+
+\begin{lstlisting}
+if (document.getElementById('haslo').value==unescape('\%62\%61\%6E\%61\%6C\%6E\%65'))
+\end{lstlisting}
+
+\paragraph{Poziom 3}\indent\par 
+Poprawne has³o dla tego poziomu to \code{1234}. Wartoœæ has³a jest zapisana w postaci binarnej, nale¿y podaæ jej wartoœæ w systemie dziesiêtnym. Do konwersji liczby mo¿na wykorzystaæ narzêdzie 
+
+\code{http://www.binaryhexconverter.com/binary-to-decimal-converter}.
+
+\begin{lstlisting}
+if (binary(parseInt(document.getElementById('haslo').value))==10011010010)
+\end{lstlisting}
+
+\paragraph{Poziom 4}\indent\par 
+Po przejœciu poprzedniego poziomu przegl¹darka wyœwietli okno dialogowe z polem do podania has³a:
+\begin{figure}[H]\centering
+\includegraphics[width=8cm]{dialog.jpg}
+\end{figure}
+
+Okno to blokuje mo¿liwoœæ wyœwietlenia Ÿród³a strony poprzez klikniêcie pracym przyciskiem myszy. Aby pobraæ Ÿród³o strony nale¿y skorzystaæ z narzêdzia Postman pozwalaj¹cego na wysy³anie zapytañ http. W odpowiedzi na zapytanie zwracany jest kod strony: 
+
+\begin{figure}[H]\centering
+\includegraphics[width=16cm]{postman.jpg}
+\end{figure}
+
+W celu rozwi¹zania zadania nale¿y odczytaæ wartoœæ liczby \code {cos} zakodowanej jako URL, a nastêpnie zamieniæ j¹ na postaæ szesnastkow¹. Za konwersjê odpowiedzialna jest funkcja \code{toString(16)}.
+
+Odczytane w ten sposób has³o to \code{102}.
+\paragraph{Poziom 5}\indent\par 
+Ten etap gry napisany jest w jêzyku PHP, wiêc nie mo¿liwe jest podejrzenie jego Ÿród³a. Kod zosta³ podany w tekscie na stronie: 
+
+
+\begin{lstlisting}
+if (!isset($haslo)) {$haslo='';} 
+if (!isset($login)) {$login='';} 
+if ($haslo=="tu jest haslo") {$has=1;} 
+if ($login=="tu jest login") {$log=1;} 
+if (($has==1) && ($log==1)) { laduj nastepny level } else { powroc do tej strony }
+\end{lstlisting}
+W celu przejœcia tego poziomu nale¿y ustawiæ wartoœci zmiennych \code{log} i \code{has} na 1. W tym celu nale¿y wykonaæ atak nazywany wstrzykiwaniem kodu. Do adresu strony nale¿y dopisaæ ¿¹dane zmienne jako parametry zapytania GET w nastêpuj¹cy sposób: 
+\begin{lstlisting} 
+http://uw-team.org/hm2/102.php?has=1&log=1
+\end{lstlisting}
+\paragraph{Poziom 6}\indent\par 
+W tym etapie nale¿y odczytaæ plik cookie odebrany ze strony po otwarciu. Mo¿na to zrobiæ z poziomu ustawieñ przegl¹darki Google Chrome wybieraj¹c opcje \code{Ustawienia treœci... > Wszystkie pliki cookie i dane witryn...}w sekcji \textbf{Prywatnoœæ}
+
+\begin{figure}[H]\centering
+\includegraphics[width=5.5cm]{cookie.jpg}
+\end{figure}
+
+Z pliku odczytaæ mo¿na adres kolejnego poziomu: \code{ciastka.htm}. 
+
+
+\paragraph{Poziom 7}
+Po wejœciu na tê stronê zostaje wyœwietlone okno dialogowe z proœb¹ o has³o, podobnie jak na poziomie 5. W celu wyœwietlenia strony mo¿na ponownie skorzystaæ z narzêdzie Postman, lub dopisaæ odpowiedni przedrostek do adresu strony w przegl¹darce Google Chrome: \code{view-source:http://uw-team.org/hm2/ciastka.htm}.
+
+W otrzymanym kodzie mo¿na odnaleŸæ liniê do³¹czaj¹c¹ kolejny plik javascript. Nazw¹ pliku jest szukane has³o:
+
+\begin{lstlisting}
+document.write('
+            <script type="text/javascript" src="include/'+haslo+'.js"><\/script>'); 
+
+		\end{lstlisting}
+		
+		Nale¿y zauwa¿yæ, ¿e plik do³¹czany jest z folderu \code{include}. Po otwarciu w przegl¹darce tego folderu mo¿na odczytaæ nazwê szukanego pliku:
+		
+		\begin{figure}[H]\centering
+\includegraphics[width=6cm]{include.jpg}
+\end{figure}
+
+Zawartoœæ pliku \code{cosik.js} okreœla adres strony kolejnego poziomu: \code{strona='listing.php';}
+\paragraph{Poziom 8}\indent\par 
+Po wejœciu na stronê tego poziomu wyœwietlone zostaje nastêpuj¹ce okno dialogowe:
+		\begin{figure}[H]\centering
+\includegraphics[width=8cm]{dialog2.jpg}
+\end{figure}
+
+Oznacza to, ¿e aby uzyskaæ dostêp do tej strony, przekierowanie na ni¹ musi nast¹piæ z serwisu Onet. Informacja o przekierowaniu zawarta jest w nag³ówku Referer zapytania http. W celu wejœcia na stronê mo¿na skorzystaæ z rozszerzenia do przegl¹darki pozwalaj¹cej definiowaæ w³asne nag³ówki. 
+
+
+Mo¿na tak¿e pobraæ Ÿród³o strony na jeden ze sposobów opisanych przy poprzednich etapach gry. Z pobranego kodu odczytaæ mo¿na has³o: 
+
+\begin{lstlisting}
+ <form action="listing.php">
+            <br>Podaj haslo: 
+            <input type="password" name="haslo">
+            <input type="submit" value="Let's rock!">
+
+        </form>
+        <br>
+        <br>
+        <div id="ukryte" style="display:none">
+            ...
+            <font color="black">k</font>
+            <font color="black">x</font>
+            <font color="black">n</font>
+            <font color="black">x</font>
+            <font color="black">g</font>
+            <font color="black">x</font>
+            <font color="black">n</font>
+            <font color="black">x</font>
+            <font color="black">a</font>
+        </div>
+				\end{lstlisting}
+
+Linia \code{<form action="listing.php">} mówi o tym, ¿e has³o nastêpnie nale¿y przes³aæ jako parametr zapytania na adres \code{listing.php}. Ponownie korzystaj¹c z Postmana nalezy stworzyæ odpowienie zapytanie. Typ zapytania nie zosta³ sprecyzowany, zatem mo¿na skorzystaæ z zapytania POST:
+
+		\begin{figure}[H]\centering
+\includegraphics[width=16cm]{postman2.jpg}
+\end{figure}
+
+Po wykonaniu zapytania ze zwróconego kodu mo¿na odczytaæ adres strony kolejnego poziomu gry. 
+\paragraph{Poziom 9}\indent\par 
+Po wejœciu na stronê tego poziomu wyœwietlone zostaje nastêpuj¹ce okno dialogowe:
+	\begin{figure}[H]\centering
+\includegraphics[width=8cm]{dialog3.jpg}
+\end{figure}
+Po pobraniu kodu strony wyœwietlony zostaje tekst zakodowany binarnie. Do jego odkodowania mo¿na skorzystaæ z narzêdzia
+
+ \code{http://www.roubaixinteractive.com/PlayGround/Binary_Conversion/Binary_To_Text.asp}
+
+Po odkodowaniu mo¿na odczytaæ tekst wiadomoœci: 
+
+\textit{Gratuluje :) Udalo ci sie rozkodowac ten etapik :] Nie bylo to specjalnie trude... Wystarczylo zrobic sobie program konwertujacy, lub wejsc na www.google.pl i wpisac text to binary. To byl juz ostatni etap tej gry. Aby byc wpisanym na liste zwyciezcow przeslij haslo bezkvu6r na adres unkn0w@wp.pl}
+\end{document}
