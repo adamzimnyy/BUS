@@ -1,0 +1,226 @@
+
+\documentclass[a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{polski}
+\usepackage[cp1250]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{listings}
+\newcommand{\code}[1]{{\lstinline[basicstyle=\ttfamily\color{black}] |#1| }}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+
+\usepackage{color}
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{pred}{rgb}{0.9,0,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\usepackage{listings}
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{pgreen},
+  keywordstyle=\color{pblue},
+  basicstyle=\ttfamily\small,
+  moredelim=[il][\textcolor{pgrey}]{$$},
+  moredelim=[is][\textcolor{pgrey}]{\%\%}{\%\%}
+}
+
+\title{ Bezp. syst. i us³ug inform. 2\\{\huge Keygen  } \\}
+\author{Adam Zimny 209787}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Cel projektu} \indent \par
+\indent \par Celem laboratorium by³o stworzenie generatora kluczy poprzez odtworzenie odtworzenie algorytmu ich generowania na podstawie pliku binarnego. 
+\section{Realizacja} \indent \par
+
+W celu przyst¹pienia do analizy pliku nale¿y poddaæ go deasemblacji przy pomocy komendy 
+
+\code{objdump -d reverse_lak > assembly}
+
+Wywo³anie tej komendy tworzy plik tekstowy o nazwie assembly, którego zawartoœci¹ jest kod pliku \code{reverse_lak} w jêzyku assembler. 
+
+Czytaj¹c kod programu odnaleŸæ mo¿na wywo³ania kolejnych funkcji. Przeœledzenie dzia³ania programu po uruchomieniu pozwala wstêpnie odtworzyæ szkielet kodu programu: 
+
+\begin{lstlisting}[caption=Szkielet programu]
+	success(){
+		print("`success"'); 
+	}
+
+	failure(){
+		print("`failure"'); 
+	}
+
+	generate_key(){
+	}
+
+	main(){
+		print(login message);
+		login = read_line();
+		password = read_line();
+		
+		key = generate_key();
+		if(password == key)
+			success();
+		else
+			failure();
+	}
+\end{lstlisting}
+
+
+\subsection{Odczyt poprawnego has³a}
+
+W celu dok³adniejszego przeanalizowania operacji wykonywanych w programie wymagane jest u¿ycie debuggera gdb. Debugger uruchamia siê komend¹:
+
+	\code{gdb reverse_lak}
+
+Po uruchomieniu mo¿liwe jest podejrzenie wartoœci zmiennych podczas dzia³ania programu. Na pocz¹tek mo¿na wykorzystaæ to do odnalezienia poprawnego has³a dla wybranego numeru indeksu. W tym celu nale¿y ustawiæ punkt przerwania po wywo³aniu funkcji \code{generate_key();} w nastêpuj¹cy sposób: 
+
+\code{b *0x80487c6}
+
+Nastêpnie nale¿y uruchomiæ program, wprowadziæ wymagane dane i wyœwietliæ zawartoœæ rejestru przechowuj¹cego wygenerowany klucz. 
+
+	\code{run}
+	
+	USER: 209787
+	
+	KEY: xxx 
+	
+	\code{x/s \$esi}
+	
+	co daje na wyjœciu konsoli nastepuj¹cy wynik: 
+	
+	\code{0x804c068					"tahovcjqxelszgnubipwdkryfmtcludmvenwfoxgpyhqzirajsbk"}
+	
+\subsection{Algorytm generowania has³a} \indent \par
+
+Kolejnym krokiem jest analiza algorytmu funkcji \code{generate_key()}. Funkcja rozpoczyna siê od pobrania ze stosu przekazanych parametrów i wywo³ania funkcji atoi na jednym z nich. Funkcja ta s³u¿y do konwersji ci¹gu znaków na wartoœæ liczbow¹. Ustawiaj¹c punkt przerwania wewn¹trz funkcji mo¿liwe jest odczytanie parametrów przekazywanych do funkcji przez stos. 
+
+\begin{lstlisting}[caption=Parametry funkcji \code{generate_key()} odczytane w gdb]
+Breakpoint 1, 0x0804866e in generate_key ()
+(gdb) x/ $ebp
+0xffffd558:    -10872
+
+(gdb) x/10x $ebp
+0xffffd558:    0xffffd588    0x080487c6    0x0804c008    0x0804c068
+0xffffd568:    0x00000040    0x0804c023    0xf7fbb000    0xf7fbb000
+0xffffd578:    0xffffd5a0    0x00000000
+
+(gdb) x/s 0x0804c008
+0x804c008:    "209787\n"
+
+(gdb) x/s 0x0804c068
+0x804c068:    ""
+
+\end{lstlisting}
+	
+	£atwo zauwa¿yæ, ¿e przekazywaymi argumentami s¹ wprowadzony numer indeksu, pusta tablica, oraz liczba ca³kowita, najprawdopodoniej oznaczaj¹ca rozmiar tablic. Wyœwietlaj¹c wartoœci parametrów w trakcie przebiegu funkcji widaæ, ¿e pusta tablica wykorzystywana jest do zwrócenia wygenerowanego klucza.
+	
+	Przebieg funkcji mo¿na przeœladziæ korzystaj¹c z komendy \code{stepi} wykonuj¹cej kolejn¹ liniê programu. W celu ³atwiejszej analizy dzia³ania programu warto skonfiguowaæ w gdb wyœwietlanie zawartoœci rejestrów po ka¿dym kroku: 
+	
+\begin{lstlisting}[caption=Konfiguracja gdb do wyœwietlania rejestrów]
+display /i $pc            % wykonywana instrukcja 
+display $ecx              % licznik pêtli
+display /s 0x0804c068     % tablica wyjœciowa         
+
+
+\end{lstlisting}
+
+W odczytanym kodzie programu odnaleŸæ mo¿na liczne instrukcje skoków warunkowych. Przechodz¹c komend¹ \code{stepi} przez funkcjê mo¿na zauwa¿yæ, ¿e wystêpuj¹ w niej dwie pêtle, a rejestr \code{ecx} wykorzystywany jest jako licznik. Przekszta³caj¹c instrukcjê assemblera do bardziej czytelnej postaci uzyskaæ mo¿na pewnien rodzaj pseudokodu, który póŸniej mo¿e zostaæ wykorzystany do napisania odpowiedniego fragmentu w wybranym jêzyku programowania. W celu uproszczenia kodu zastosowano pewne podstawienia: 
+
+\begin{description}
+	\item[index] - liczba, dla której generowany jest klucz, przechowywana w rejestrze \code{\%ebx} 
+	\item[tab] - komórka pamiêci o adresie 0x8049e18, z której program pobiera wartoœci przesuniête o \code{edx}
+	\item[key] - tablica wyjœciowa, jej adres przechowywany jest w rejestrze \code{\%edi} 
+	\item[i] - rejestr ecx wykorzystywany jako licznik pêtli
+\end{description}
+
+\begin{lstlisting}[caption=Pêtle wewn¹trz funkcji \code{generate_key()}]
+804868f:	imul   $0x7,%ecx,%eax                 % eax = i*7
+		xor    %edx,%edx                      % edx = 0;
+		add    %ebx,%eax                      % eax = eax + index;               
+		div    %esi                           % edx = eax mod esi;                         
+		mov    0x8049e18(%edx),%al            % eax = tab[edx];
+		mov    %al,(%edi,%ecx,1)              % key[i] = eax;
+		inc    %ecx                           % i++;
+		cmp    0x10(%ebp),%ecx                % i == 64  ?
+		jae    80486ac <generate_key+0x52>    % break;
+		cmp    $0x19,%ecx                     % i == 25 ?
+		jbe    804868f <generate_key+0x35>    % loop;
+		
+		
+		
+80486b8:	lea    (%ecx,%ecx,8),%eax             % eax = i + i*8;
+		xor    %edx,%edx                      % edx = 0;
+		add    %ebx,%eax                      % eax = eax + index;
+		div    %esi                           % edx = eax mod esi;
+		mov    0x8049e18(%edx),%al            % eax = tab[edx];
+		mov    %al,(%edi,%ecx,1)              % key[i] = eax;
+		inc    %ecx                           % i++;
+		cmp    0x10(%ebp),%ecx                % i == 64 ? 
+		jae    80486d5 <generate_key+0x7b>    % break;
+		cmp    $0x33,%ecx                     % i == 51 ?
+		jbe    80486b8 <generate_key+0x5e>    % loop;
+\end{lstlisting}
+
+Zawartoœæ komórki pamiêci \code{0x8049e18} wykorzystywanej w pêtli wyœwietlona przy pomocy komendy \code{x/s 0x8049e18} ukazuje zbiór znaków u¿ywanych do budowania klucza: 
+
+\code{0x8049e18 <alpha>:    "abcdefghijklmnopqrstuvwxyzO"}
+
+\quad
+
+Na podstawie tych informacji mo¿liwe jest odtworzenie algorytmu generuj¹cego klucze. 
+
+\begin{lstlisting}[caption=Odtworzony algorytm generowania klucza]
+
+  char[] alphabet = "abcdefghijklmnopqrstuvwxyzO".toCharArray();
+
+  private void generateKey() {
+        int index = Integer.parseInt(indexField.getText());// indexField - pole tekstowe
+        int modulo = index % 26;
+        int a, c;
+        int esi = 26;
+        String key = "";
+        for (c = 0; c < 26; c++) {
+            a = c * 7;
+            a += modulo;
+            key += alphabet[a % esi];
+        }
+        for (c = 26; c < 52; c++) {
+            a = c + c * 8;
+            a+= modulo;
+            key += alphabet[a % esi];
+        }
+        keyField.setText(key); // keyField - pole tekstowe
+    }
+\end{lstlisting}
+
+\quad
+
+Sprawdzenie w stworzonym generatorze klucza dla uzytego wczeœniej numeru indeksu 209787 potwierdza poprawnoœæ algorytmu. Wygenerowany klucz zgadza siê w odczytanym wczeœniej przy uzyciu debuggera gdb.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width = 6cm]{screen.png}
+\caption{Zrzut ekranu stworzonego generatora}
+\end{figure}
+
+
+\section{Podsumowanie}
+\indent \par
+Zadanie to pokaza³o jak poprzez analizê kodu zdekompilowanego  programu mo¿liwe jest obejœcie pewnych zabezpieczeñ.
+\end{document}
